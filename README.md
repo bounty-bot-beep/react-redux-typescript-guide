@@ -2266,3 +2266,74 @@ This project follows the [all-contributors](https://github.com/kentcdodds/all-co
 MIT License
 
 Copyright (c) 2017 Piotr Witek <piotrek.witek@gmail.com> (<https://piotrwitek.github.io>)
+
+## Types Global Namespace
+
+In large React & Redux applications, managing types across multiple modules can become complex. To address this, I designed a global `Types` namespace that acts as a central hub for all type definitions in the application. This approach leverages the inversion of control principle, allowing modules to extend the `Types` namespace rather than defining types in a single place.
+
+The `Types` namespace is structured as a module that exports a collection of type definitions. Each module that requires specific types extends this namespace, ensuring that types are encapsulated and easily reusable. This design promotes modularity, simplifies maintenance, and enhances type safety throughout the application.
+
+### Structure of the Types Namespace
+
+The `Types` namespace is typically defined in a file named `Types.ts` or `types.ts`. It starts with a base set of types that are shared across the application. For example:
+
+```typescript
+// Types.ts
+export namespace Types {
+  export interface RootState {}
+  export interface RootAction {}
+  export interface Services {}
+}
+```
+
+Each module that needs to use or extend these types can import the `Types` namespace and add its own type definitions. For instance, a module that handles user data might extend the `Types` namespace as follows:
+
+```typescript
+// userModule.ts
+import { Types } from 'Types';
+
+namespace Types {
+  export interface UserState {
+    id: number;
+    name: string;
+  }
+
+  export interface UserAction {
+    type: 'USER_LOADED';
+    payload: { id: number; name: string };
+  }
+}
+```
+
+By extending the `Types` namespace, modules can add their own types without polluting the global namespace. This approach ensures that types are organized and easily discoverable.
+
+### Benefits of the Types Global Namespace
+
+1. **Simplicity to Extend**: Modules can easily extend the `Types` namespace to add new types without modifying existing code.
+2. **Easy Maintenance**: When a module is removed, its type definitions are also removed, keeping the namespace clean and up-to-date.
+3. **Clean Imports**: Consumers of the types can import the `Types` namespace directly, making the code more readable and maintainable.
+
+### Usage in Reducers and Actions
+
+The `Types` namespace is particularly useful in reducers and action creators. For example, a reducer might be defined as:
+
+```typescript
+import { Types } from 'Types';
+
+const rootReducer = (state: Types.RootState, action: Types.RootAction): Types.RootState => {
+  // reducer logic
+};
+```
+
+Similarly, action creators can use the `Types` namespace to define action types and payloads:
+
+```typescript
+import { Types } from 'Types';
+
+const loadUser = (user: Types.UserState): Types.UserAction => ({
+  type: 'USER_LOADED',
+  payload: user,
+});
+```
+
+By leveraging the `Types` global namespace, you can create a more organized, maintainable, and type-safe React & Redux application. This approach not only simplifies type management but also enhances the overall developer experience.
