@@ -1,9 +1,5 @@
 const path = require('path');
 const fs = require('fs');
-const { createConfig } = require('webpack-blocks');
-const typescript = require('@webpack-blocks/typescript');
-const webpackConfig = createConfig([typescript()]);
-webpackConfig.resolve.alias = { '@src': path.join(__dirname, 'src') };
 
 module.exports = {
   showUsage: false,
@@ -18,35 +14,55 @@ module.exports = {
     {
       name: 'Function Components',
       components: () => [
-        './src/components/fc-counter.tsx',
-        './src/components/fc-spread-attributes.tsx',
+        '../src/components/fc-counter.tsx',
+        '../src/components/fc-spread-attributes.tsx',
+        '../src/components/fc-counter-with-default-props.tsx',
       ],
     },
     {
       name: 'Class Components',
       components: () => [
-        './src/components/class-counter.tsx',
-        './src/components/class-counter-with-default-props.tsx',
+        '../src/components/class-counter.tsx',
+        '../src/components/class-counter-with-default-props.tsx',
       ],
     },
     {
       name: 'Generic Components',
-      components: () => ['./src/components/generic-list.tsx'],
+      components: () => ['../src/components/generic-list.tsx'],
     },
     {
       name: 'Render Props',
       components: () => [
-        './src/components/name-provider.tsx',
-        './src/components/mouse-provider.tsx',
+        '../src/components/name-provider.tsx',
+        '../src/components/mouse-provider.tsx',
       ],
     },
   ],
   theme: {
     sidebarWidth: 300,
   },
-  propsParser: require('react-docgen-typescript').parse,
-  webpackConfig: webpackConfig,
-  updateExample: function(props, exampleFilePath) {
+  propsParser: require('react-docgen-typescript').withCustomConfig(
+    '../tsconfig.json'
+  ).parse,
+  webpackConfig: {
+    resolve: {
+      extensions: ['.ts', '.tsx', '.js', '.jsx'],
+      alias: { '@src': path.join(__dirname, '..', 'src') },
+    },
+    module: {
+      rules: [
+        {
+          test: /\.tsx?$/,
+          exclude: /node_modules/,
+          loader: 'ts-loader',
+          options: {
+            transpileOnly: true,
+          },
+        },
+      ],
+    },
+  },
+  updateExample: function (props, exampleFilePath) {
     if (typeof props.settings.filePath === 'string') {
       const {
         settings: { filePath },
