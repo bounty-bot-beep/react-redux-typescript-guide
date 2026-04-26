@@ -2266,3 +2266,72 @@ This project follows the [all-contributors](https://github.com/kentcdodds/all-co
 MIT License
 
 Copyright (c) 2017 Piotr Witek <piotrek.witek@gmail.com> (<https://piotrwitek.github.io>)
+
+## How to use forwardRef?
+
+When working with React components in TypeScript, you might need to forward a ref from a parent component to a child component. This is especially common when dealing with DOM elements or custom components that need to access the underlying DOM node. React provides the `forwardRef` function for this purpose, but it requires careful typing to ensure type safety.
+
+To use `forwardRef`, you need to define a component that accepts a `ref` as a parameter and then forward it to another component. When using TypeScript, you must explicitly type the `ref` and the component that receives it.
+
+Here's an example of how to type a component that uses `forwardRef`:
+
+```tsx
+import React, { forwardRef, useRef } from 'react';
+
+// Define the props type
+interface InputProps {
+  value: string;
+  onChange: (value: string) => void;
+}
+
+// Define the ref type
+interface InputRef {
+  focus: () => void;
+}
+
+// Create the component with forwardRef
+const Input = forwardRef<InputRef, InputProps>(
+  (props, ref) => {
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    const handleFocus = () => {
+      inputRef.current?.focus();
+    };
+
+    return (
+      <input
+        ref={inputRef}
+        value={props.value}
+        onChange={(e) => props.onChange(e.target.value)}
+        onFocus={handleFocus}
+      />
+    );
+  }
+);
+
+// Usage example
+const App = () => {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleFocus = () => {
+    inputRef.current?.focus();
+  };
+
+  return (
+    <div>
+      <Input
+        value="Hello"
+        onChange={(value) => console.log(value)}
+        ref={inputRef}
+      />
+      <button onClick={handleFocus}>Focus Input</button>
+    </div>
+  );
+};
+```
+
+In this example, the `Input` component is created using `forwardRef`, and it accepts a `ref` of type `InputRef`. The `InputRef` interface defines the methods that the ref can access, such as `focus()`. The component itself uses a `useRef` to access the DOM node and forwards it to the `ref` prop.
+
+When using `forwardRef`, it's important to ensure that the component you're forwarding the ref to is properly typed. If you're forwarding a ref to a DOM element, you can use `React.RefObject` to type the ref. For custom components, you can define your own ref interface to describe the methods and properties available on the ref.
+
+By properly typing your components and refs, you can ensure that your React application is both type-safe and maintainable.
