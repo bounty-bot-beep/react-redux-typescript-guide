@@ -2266,3 +2266,78 @@ This project follows the [all-contributors](https://github.com/kentcdodds/all-co
 MIT License
 
 Copyright (c) 2017 Piotr Witek <piotrek.witek@gmail.com> (<https://piotrwitek.github.io>)
+
+## Scalable Application Structure
+
+Creating a scalable application structure is essential when working with React and Redux, especially as your application grows in complexity. A well-organized structure allows you to manage features more efficiently, making it easier to add, remove, or disable features on demand. This section outlines best practices for organizing your codebase to achieve a modular, reusable, and maintainable architecture.
+
+### Feature-Based Organization
+
+The primary goal of a scalable structure is to group files by features. Each feature should be a self-contained unit that includes its own Redux slices, React components, and utility functions. This approach ensures that your codebase remains organized and easy to navigate.
+
+For example, a feature like `user` might have the following structure:
+
+```
+src/
+└── features/
+    └── user/
+        ├── index.ts
+        ├── actions.ts
+        ├── reducer.ts
+        ├── selectors.ts
+        ├── components/
+        │   ├── UserList.tsx
+        │   ├── UserDetails.tsx
+        │   └── UserForm.tsx
+        └── types.ts
+```
+
+Each feature should export a default object that contains its Redux slice, which can be combined with other slices in the root reducer.
+
+### Reusable and Pluggable Features
+
+To make features reusable across different Redux applications, define them as standalone modules that can be imported and integrated into any project. This is achieved by exporting a default object that includes the Redux slice and any necessary utility functions.
+
+```ts
+// src/features/user/index.ts
+import { combineReducers } from 'redux';
+import { userReducer } from './reducer';
+import { userActions } from './actions';
+
+export default combineReducers({
+  user: userReducer,
+});
+
+export { userActions };
+```
+
+### Feature Toggling
+
+To enable or disable features on demand, use a feature toggle system. This can be implemented using a configuration object that determines which features are active. You can then conditionally import and register features based on this configuration.
+
+```ts
+// src/store/config.ts
+export const featureToggles = {
+  user: true,
+  settings: false,
+};
+
+// src/store/index.ts
+import { configureStore } from '@reduxjs/toolkit';
+import { combineReducers } from 'redux';
+import { featureToggles } from './config';
+
+const rootReducer = combineReducers(
+  featureToggles.user
+    ? require('./features/user/index').default
+    : {}
+);
+
+export const store = configureStore({
+  reducer: rootReducer,
+});
+```
+
+### Conclusion
+
+By organizing your application by features, you create a modular and maintainable codebase that is easy to scale. This approach also makes your features reusable and pluggable, allowing you to share them across different projects. Following these best practices will help you build robust and scalable React and Redux applications using TypeScript.
