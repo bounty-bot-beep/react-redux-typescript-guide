@@ -136,6 +136,7 @@ I highly recommend to add a bounty to the issue that you're waiting for to incre
     - [Typing connected component](#typing-connected-component)
     - [Typing `useSelector` and `useDispatch`](#typing-useselector-and-usedispatch)
     - [Typing connected component with `redux-thunk` integration](#typing-connected-component-with-redux-thunk-integration)
+    - [Using `@connect` decorator](#using-connect-decorator)
 - [Configuration & Dev Tools](#configuration--dev-tools)
   - [Common Npm Scripts](#common-npm-scripts)
   - [tsconfig.json](#tsconfigjson)
@@ -1861,6 +1862,68 @@ type DispatchProps = ReturnType<typeof mapDispatchToProps>;
 
 /* Without "bindActionCreators" fix signature will be the same as the original "unbound" thunk function: */
 // { thunkAsyncAction: () => (dispatch: Dispatch<AnyAction>) => Promise<void>; }
+```
+
+[⇧ back to top](#table-of-contents)
+
+### Using `@connect` decorator
+
+The `connect` HOF can also be applied to a class component using the experimental decorator syntax. To use this, set `"experimentalDecorators": true` in your `tsconfig.json`.
+
+_**NOTE**: The legacy decorator syntax (the only stable one currently supported by TypeScript) cannot transform the class type — so the public type of the decorated class will still require **all** props (state and dispatch props included) when consumed. Because of this limitation, the idiomatic TypeScript pattern is to apply `connect()` as a function (see [Typing connected component](#typing-connected-component)). The decorator form is documented here for completeness and for users migrating from JavaScript codebases._
+
+```tsx
+import MyTypes from 'MyTypes';
+import * as React from 'react';
+import { connect } from 'react-redux';
+
+import { countersActions, countersSelectors } from '../features/counters';
+
+interface OwnProps {
+  label: string;
+}
+
+interface StateProps {
+  count: number;
+}
+
+interface DispatchProps {
+  onIncrement: typeof countersActions.increment;
+}
+
+type Props = OwnProps & StateProps & DispatchProps;
+
+const mapStateToProps = (state: MyTypes.RootState) => ({
+  count: countersSelectors.getReduxCounter(state.counters),
+});
+
+const dispatchProps: DispatchProps = {
+  onIncrement: countersActions.increment,
+};
+
+// The cast to `ClassDecorator` is required because legacy decorators in TypeScript
+// don't allow the decorator's return type to differ from the original class.
+@(connect(mapStateToProps, dispatchProps) as ClassDecorator)
+export class ClassCounterConnected extends React.Component<Props> {
+  handleIncrement = () => {
+    this.props.onIncrement();
+  };
+
+  render() {
+    const { label, count } = this.props;
+
+    return (
+      <div>
+        <span>
+          {label}: {count}
+        </span>
+        <button type="button" onClick={this.handleIncrement}>
+          {`Increment`}
+        </button>
+      </div>
+    );
+  }
+}
 ```
 
 [⇧ back to top](#table-of-contents)
