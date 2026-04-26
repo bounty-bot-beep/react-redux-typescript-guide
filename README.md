@@ -2266,3 +2266,62 @@ This project follows the [all-contributors](https://github.com/kentcdodds/all-co
 MIT License
 
 Copyright (c) 2017 Piotr Witek <piotrek.witek@gmail.com> (<https://piotrwitek.github.io>)
+
+## Connected Generic Components
+
+When combining generic components with Redux's `connect` function, it's important to properly define the type parameters to ensure type safety and correct prop inference. The goal is to create a connected generic component that can be used with different types while maintaining the correct props and state structure.
+
+Let's take an example of a generic `GenericList<T>` component and connect it using `connect`. We'll define the necessary type parameters to make the connection type-safe.
+
+First, define the generic `GenericList<T>` component:
+
+```tsx
+interface GenericListProps<T> {
+  items: T[];
+  onItemClicked: (item: T) => void;
+}
+
+const GenericList = <T,>({ items, onItemClicked }: GenericListProps<T>) => (
+  <ul>
+    {items.map((item) => (
+      <li key={item} onClick={() => onItemClicked(item)}>
+        {item}
+      </li>
+    ))}
+  </ul>
+);
+```
+
+Next, define the `mapStateToProps` function that will provide the `items` prop from the Redux store:
+
+```tsx
+interface State {
+  items: string[];
+}
+
+const mapStateToProps = (state: State) => ({
+  items: state.items,
+});
+```
+
+Now, we can connect the `GenericList` component using `connect`. We need to specify the type parameters for `connect` to ensure that the props are correctly inferred:
+
+```tsx
+import { connect } from 'react-redux';
+
+export const ConnectedListExtended = <T,>(
+  mapStateToProps: (state: State) => Partial<GenericListProps<T>>,
+  mapDispatchToProps: any,
+  ownProps: any
+) => connect(mapStateToProps, mapDispatchToProps)(GenericList<T>);
+```
+
+To use this connected component, you can do the following:
+
+```tsx
+const ConnectedList = ConnectedListExtended<string>();
+```
+
+This will create a connected component that uses `string` as the generic type. The `mapStateToProps` function will provide the `items` prop from the Redux store, and the `onItemClicked` prop will be correctly typed as a function that takes a `string` parameter.
+
+By properly defining the type parameters and using the `connect` function, you can create connected generic components that are type-safe and maintain the correct prop structure. This approach ensures that your components are flexible and can be used with different types while maintaining the benefits of TypeScript's type system.
